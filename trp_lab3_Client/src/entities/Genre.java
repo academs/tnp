@@ -5,11 +5,13 @@
  */
 package entities;
 
+import javax.xml.bind.annotation.XmlEnum;
+
 /**
  *
  * @author Айна и Лена
  */
-
+@XmlEnum(String.class)
 public enum Genre {
     ACTION,
     COMEDY,

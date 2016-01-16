@@ -1,10 +1,10 @@
 package model.communication;
 
+import model.communication.protocol.ModelMessage;
+import model.communication.protocol.MessageProtocol;
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -13,23 +13,13 @@ import java.net.SocketTimeoutException;
 public class ClientHandler extends Thread{
     
     private final int clientNo;
-            
-    private final Socket modifySocket;
-    private final ObjectOutputStream outStream;
-    private final ObjectInputStream inStream;
-    
+    private final MessageProtocol protocol;
     private Integer editingDirectorID;
     private Long editingFilmID;
     
-    public ClientHandler(int clientNo, Socket modifySocket) throws IOException {              
-        this.modifySocket = modifySocket;
-        this.modifySocket.setSoTimeout(100);
-        
+    public ClientHandler(int clientNo, MessageProtocol protocol) throws IOException {                      
         this.clientNo = clientNo;
-        
-        this.outStream = new ObjectOutputStream(modifySocket.getOutputStream());
-        this.outStream.flush();
-        this.inStream = new ObjectInputStream(modifySocket.getInputStream());
+        this.protocol = protocol;
     }
 
     public Integer getEditingDirectorID() {
@@ -51,9 +41,9 @@ public class ClientHandler extends Thread{
     private ModelMessage tryToDelayedRead() throws IOException {        
         ModelMessage message = null;
         try {
-            message = (ModelMessage) inStream.readObject();
-        } catch (SocketTimeoutException ex) {
-        } catch (ClassNotFoundException ex) {
+            message = protocol.receiveMessage();
+        } catch (IOException ex) {
+        } catch (Exception ex) {
             System.out.println("Клиент " + clientNo + ": Мастер-Обработчик: Получено сообщение неизвестного формата");
         }
         return message;
@@ -71,11 +61,14 @@ public class ClientHandler extends Thread{
                         break;
                     } else {
                         ModelMessage response = ModelHandler.getInstance().handleMessage(clientNo, message);
-                        outStream.writeObject(response);
+                        protocol.sendMessage(response);
                     }
                 }
             } catch (IOException ex) {
                 System.out.println("Клиент " + clientNo + ": Мастер-Обработчик: Ошибка соединения. Клиент отключён");
+                break;
+            } catch (Exception ex) {
+                Logger.getLogger(ClientHandler.class.getName()).log(Level.SEVERE, null, ex);
                 break;
             }
             //Check interruption
@@ -91,7 +84,7 @@ public class ClientHandler extends Thread{
     private void finilizeHandler() {
         ModelHandler.getInstance().removeClient(clientNo);        
         try {
-            modifySocket.close();
+            protocol.close();
         } catch (IOException ex) {
             System.out.println("Клиент " + clientNo + ": Мастер-Обработчик: Ошибка закрытия сокета модификации");
         }

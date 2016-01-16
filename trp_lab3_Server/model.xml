@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<model>
+    <directors>
+        <director>
+            <idDirector>1</idDirector>
+            <name>Квентин Тарантино</name>
+        </director>
+        <director>
+            <idDirector>2</idDirector>
+            <name>Алехандро Гонсалес Иньярриту</name>
+        </director>
+        <director>
+            <idDirector>3</idDirector>
+            <name>Джеймс Кэмерон</name>
+        </director>
+        <director>
+            <idDirector>4</idDirector>
+            <name>Мартин Скорсезе</name>
+        </director>
+        <director>
+            <idDirector>5</idDirector>
+            <name>Никита Михалков</name>
+        </director>
+    </directors>
+    <films>
+        <film>
+            <duration>114</duration>
+            <genre>ACTION</genre>
+            <idDirector>1</idDirector>
+            <idFilm>1</idFilm>
+            <title>Доказательство смерти</title>
+        </film>
+        <film>
+            <duration>154</duration>
+            <genre>ACTION</genre>
+            <idDirector>1</idDirector>
+            <idFilm>2</idFilm>
+            <title>Криминальное чтиво</title>
+        </film>
+        <film>
+            <duration>119</duration>
+            <genre>DRAMA</genre>
+            <idDirector>2</idDirector>
+            <idFilm>3</idFilm>
+            <title>Бёрдмэн</title>
+        </film>
+        <film>
+            <duration>156</duration>
+            <genre>DRAMA</genre>
+            <idDirector>2</idDirector>
+            <idFilm>4</idFilm>
+            <title>Выживший</title>
+        </film>
+        <film>
+            <duration>194</duration>
+            <genre>DRAMA</genre>
+            <idDirector>3</idDirector>
+            <idFilm>5</idFilm>
+            <title>Титаник</title>
+        </film>
+        <film>
+            <duration>97</duration>
+            <genre>COMEDY</genre>
+            <idDirector>4</idDirector>
+            <idFilm>6</idFilm>
+            <title>После работы</title>
+            <year>1985</year>
+        </film>
+    </films>
+</model>

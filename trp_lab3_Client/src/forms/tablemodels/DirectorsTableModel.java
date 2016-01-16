@@ -1,5 +1,6 @@
 package forms.tablemodels;
 
+import forms.SelectItem;
 import java.util.ArrayList;
 import java.util.List;
 import javax.swing.table.DefaultTableModel;
@@ -52,11 +53,12 @@ public class DirectorsTableModel extends DefaultTableModel {
         fireTableDataChanged();
     }
     
-    public List<String> getDirectorsInfo() {
-        List<String> result = new ArrayList<>();
+    public List<SelectItem<Integer, String>> getDirectorsInfo() {
+        List<SelectItem<Integer, String>> result = new ArrayList<>();
         if (rowsData != null) {
             for (int i = 0; i < rowsData.size(); i++) {
-                result.add(rowsData.get(i)[1] + " [ID=" + rowsData.get(i)[0] + "]");
+                Object[] r = rowsData.get(i);
+                result.add(new SelectItem<>((Integer) r[0], r[1] + " [ID=" + r[0] + "]"));
             }
         }
         return result;

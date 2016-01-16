@@ -1,9 +1,10 @@
 package model.communication;
 
+import model.communication.protocol.ModelMessage;
+import model.communication.protocol.MessageProtocol;
 import entities.Director;
 import entities.Film;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.Collections;
 import java.util.Map;
 import java.util.SortedMap;
@@ -31,8 +32,8 @@ public class ModelHandler {
         return instance;
     }
     
-    public void addClient(int clientNo, Socket modifySocket) throws IOException {
-        ClientHandler client = new ClientHandler(clientNo, modifySocket);
+    public void addClient(int clientNo, MessageProtocol protocol) throws IOException {
+        ClientHandler client = new ClientHandler(clientNo, protocol);
         clients.put(clientNo, client);
         client.start();
     }

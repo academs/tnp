@@ -9,7 +9,7 @@ import java.awt.Color;
 import java.awt.Window;
 import model.ClientController;
 import model.ModelException;
-import model.communication.ModelMessage;
+import model.communication.protocol.ModelMessage;
 import model.communication.ServerHandler;
 
 /**

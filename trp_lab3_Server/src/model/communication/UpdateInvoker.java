@@ -1,12 +1,14 @@
 package model.communication;
 
+import model.communication.protocol.ModelMessage;
+import model.communication.protocol.MessageProtocol;
 import java.io.IOException;
-import java.io.ObjectOutputStream;
-import java.net.Socket;
 import java.util.Collections;
 import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import model.ServerController;
 
 /**
@@ -17,8 +19,8 @@ public class UpdateInvoker{
     
     private static UpdateInvoker instance;
     
-    private final SortedMap<Integer, Socket> sockets = Collections.synchronizedSortedMap(new TreeMap<Integer, Socket>());
-    private final SortedMap<Integer, ObjectOutputStream> streams = Collections.synchronizedSortedMap(new TreeMap<Integer, ObjectOutputStream>());
+    private final SortedMap<Integer, MessageProtocol> clients = Collections
+            .synchronizedSortedMap(new TreeMap<Integer, MessageProtocol>());
     
     private UpdateInvoker() {
     }     
@@ -30,19 +32,14 @@ public class UpdateInvoker{
         return instance;
     }
     
-    public void addClient(int clientNo, Socket updateSocket) throws IOException  {
-        sockets.put(clientNo, updateSocket);
-        ObjectOutputStream outStream = new ObjectOutputStream(updateSocket.getOutputStream());
-        outStream.flush();
-        initClientTables(outStream);
-        streams.put(clientNo, outStream);
+    public void addClient(int clientNo, MessageProtocol protocol) throws IOException  {
+        clients.put(clientNo, protocol);
+        initClientTables(protocol);;
     }
     
     public void removeClient(int clientNo) {
-        Socket client = sockets.get(clientNo);
+        MessageProtocol client = clients.remove(clientNo);
         if (client != null) {
-            sockets.remove(clientNo);
-            streams.remove(clientNo);
             try {
                 client.close();
             } catch (IOException ex) {
@@ -52,28 +49,35 @@ public class UpdateInvoker{
     }
     
     public synchronized void invokeUpdate(ModelMessage message) {
-        for (Map.Entry<Integer, ObjectOutputStream> entryStream : streams.entrySet()) {
+        for (Map.Entry<Integer, MessageProtocol> client : clients.entrySet()) {
             try {
-                entryStream.getValue().writeObject(message);
+                client.getValue().sendMessage(message);
             } catch (IOException ex) {
-                System.out.println("Клиент " + entryStream.getKey() + ": Генератор обновлений: Ошибка соединения");
-                removeClient(entryStream.getKey());
-                ModelHandler.getInstance().removeClient(entryStream.getKey());
+                System.out.println("Клиент " + client.getKey() + ": Генератор обновлений: Ошибка соединения");
+                removeClient(client.getKey());
+                ModelHandler.getInstance().removeClient(client.getKey());
+            } catch (Exception ex) {
+                Logger.getLogger(UpdateInvoker.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }
     
-    private void initClientTables(ObjectOutputStream outStream) throws IOException {
+    private void initClientTables(MessageProtocol protocol) throws IOException {
         ModelMessage updateAllDirectors = new ModelMessage(
                 ModelMessage.MessageType.UPDATE, 
                 ModelMessage.EntityTarget.DIRECTOR,
                 ServerController.getInstance().getDirectorsData());
-        outStream.writeObject(updateAllDirectors);
-        
         ModelMessage updateAllFilms = new ModelMessage(
                 ModelMessage.MessageType.UPDATE, 
                 ModelMessage.EntityTarget.FILM,
                 ServerController.getInstance().getFilmsData());
-        outStream.writeObject(updateAllFilms);
+        try {
+            protocol.sendMessage(updateAllDirectors);
+            protocol.sendMessage(updateAllFilms);
+        } catch(IOException e) {
+            throw e;
+        } catch(Exception e) {
+            throw new RuntimeException(e);
+        }
     }    
 }

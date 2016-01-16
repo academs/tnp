@@ -23,7 +23,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
-import model.communication.ModelMessage;
+import model.communication.protocol.ModelMessage;
 import model.communication.ServerHandler;
 
 /**
@@ -570,7 +570,7 @@ public class MainFrame extends javax.swing.JFrame {
 
     private void connectionButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_connectionButtonActionPerformed
         try {
-            serverHandler = ServerHandler.createInstance(serverIPTextField.getText());
+            serverHandler = ServerHandler.createXMLInstance(serverIPTextField.getText());
             connectionButton.setBackground(Color.green);
             enableActions(true);
             statusLabel.setText("Соединение с сервером установлено");

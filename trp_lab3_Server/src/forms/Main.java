@@ -1,50 +1,22 @@
 package forms;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketTimeoutException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Locale;
-import model.communication.ModelHandler;
-import model.communication.UpdateInvoker;
+import model.communication.protocol.MessageProtocol;
+import model.communication.protocol.XMLProtocol;
 
 public class Main {
 
     public static void main(String args[]) {
         //Initialize parameters
         Locale.setDefault(Locale.ENGLISH);
-        
-        try {
-            int clientNo = 0;
-            ServerSocket updateServerSocket = new ServerSocket(6666);
-            ServerSocket modifyServerSocket = new ServerSocket(7777);
-            System.out.println("Сервер запущен");
-            updateServerSocket.setSoTimeout(10000);
-            modifyServerSocket.setSoTimeout(10000);
-            ModelHandler clientsMap = ModelHandler.getInstance();
-            UpdateInvoker updateInvoker = UpdateInvoker.getInstance();
-            while(true) {
-                try {
-                    Socket updateSocket = updateServerSocket.accept();
-                    Socket modifySocket = modifyServerSocket.accept();
-                    if (updateSocket != null && modifySocket != null) {
-                        if (!updateSocket.getInetAddress().equals(
-                                modifySocket.getInetAddress())) {
-                            System.out.println("Клиент " + clientNo + ": IP-адреса сокетов не совпадают");
-                            throw new IOException();
-                        }
-                        updateInvoker.addClient(clientNo, updateSocket);
-                        clientsMap.addClient(clientNo, modifySocket);
-                        System.out.println("Клиент " + clientNo + ": Присоединён");
-                    }
-                } catch (SocketTimeoutException ex) {
-                } catch (IOException ex) {
-                    System.out.println("Клиент " + clientNo + ": Не удалось установить соединение");
-                }
-                clientNo++;
+        new Server(6667, 7778) {
+            @Override
+            public MessageProtocol createProtocol(InputStream in, OutputStream out) throws IOException {
+                return new XMLProtocol(in, out);
             }
-        } catch (IOException ex) {
-            System.out.println("Не удалось создать сокет");
-        }
+        }.start();
     }
 }

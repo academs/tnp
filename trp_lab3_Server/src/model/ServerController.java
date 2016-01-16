@@ -3,15 +3,9 @@ package model;
 import entities.Director;
 import entities.Film;
 import entities.Genre;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.Collection;
 import java.util.List;
-import model.communication.ModelMessage;
+import model.communication.protocol.ModelMessage;
 
 /**
  *
@@ -105,10 +99,8 @@ public class ServerController {
             if (film.getIdFilm().equals(ID)) {
                 throw new ModelException("ID: Дублирование");
             }
-        }
-        String scID = (String)data[5];        
-        Integer icID = Integer.parseInt(scID.substring(
-                scID.lastIndexOf("[ID=") + 4, scID.lastIndexOf("]")));
+        }     
+        Integer icID = (Integer) data[5];
         Director parent = null;
         for (Director director : model.getDirectors()) {
             if (director.getIdDirector().equals(icID)) {
@@ -137,9 +129,7 @@ public class ServerController {
             //Removing link to the Director
             film.getIdDirector().getFilmCollection().remove(film);
             //Creating link to the Director
-            String scID = (String)data[5];
-            Integer icID = Integer.parseInt(scID.substring(
-                    scID.lastIndexOf("[ID=") + 4, scID.lastIndexOf("]")));
+            Integer icID = (Integer) data[5];
             film.setIdDirector(getDirector(icID));            
             film.getIdDirector().getFilmCollection().add(film);
         }
@@ -163,32 +153,10 @@ public class ServerController {
     }
     
     public void loadFromFile() throws ModelException{
-        try {
-            ObjectInputStream ois = new ObjectInputStream(
-                new FileInputStream("model.dat"));
-            try {
-                model = (Model)ois.readObject();    
-            } finally {
-                ois.close();
-            }            
-        } catch (ClassNotFoundException | IOException ex) {
-            throw new ModelException("Загрузка из файла: " + ex.getMessage());
-        }
+        model = ModelLoader.loadFromXMLFile();
     }
 
     public void saveToFile() throws ModelException{
-        try {
-            ObjectOutputStream oos = new ObjectOutputStream(
-                new FileOutputStream("model.dat"));            
-            try {
-                oos.writeObject(model);
-            } finally {
-                oos.close();
-            }            
-        } catch (FileNotFoundException ex) {
-            throw new ModelException("Сохранение в файл: " + ex.getMessage());
-        } catch (IOException ex) {
-            throw new ModelException("Сохранение в файл: " + ex.getMessage());
-        }
+        ModelLoader.saveToXMLFile(model);
     }
 }

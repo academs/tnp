@@ -1,12 +1,13 @@
 package forms.dialogs;
 
 import entities.Genre;
+import forms.SelectItem;
 import java.awt.Color;
 import java.awt.Window;
 import java.util.List;
 import model.ClientController;
 import model.ModelException;
-import model.communication.ModelMessage;
+import model.communication.protocol.ModelMessage;
 import model.communication.ServerHandler;
 
 /**
@@ -19,14 +20,15 @@ public class FilmDialog extends javax.swing.JDialog {
     private ServerHandler serverHandler;
 
     public FilmDialog(Window owner, ModalityType modalityType) {
-        super(owner, modalityType);        
+        super(owner, modalityType);
         initComponents();
         statusLabel.setForeground(Color.red);
         Genre[] genres = Genre.values();
-        for (int i = 0; i < genres.length; i++)
+        for (int i = 0; i < genres.length; i++) {
             genreComboBox.addItem(genres[i]);
+        }
     }
-    
+
     public void showDialog(boolean addNew, Object[] rowData) {
         this.addNew = addNew;
         this.serverHandler = ServerHandler.getInstance();
@@ -39,41 +41,42 @@ public class FilmDialog extends javax.swing.JDialog {
             idTextField.setText("");
             titleTextField.setText("");
             yearTextField.setText("");
-            durationTextField.setText("");            
+            durationTextField.setText("");
             directorComboBox.setSelectedItem(null);
             genreComboBox.setSelectedItem(null);
-        } 
-        //Modify existing Film - fill parameters
-        else {            
+        } //Modify existing Film - fill parameters
+        else {
             idTextField.setEditable(false);
-            idTextField.setText(rowData[0].toString());
-            titleTextField.setText(rowData[1].toString());
-            if (rowData[3] == null) yearTextField.setText("");
-            else yearTextField.setText(rowData[3].toString());
-            if (rowData[4] == null) durationTextField.setText("");
-            else durationTextField.setText(rowData[4].toString());
-            directorComboBox.setSelectedItem(rowData[5]);
+            idTextField.setText(nvl(rowData[0]));
+            titleTextField.setText(nvl(rowData[1]));
+            yearTextField.setText(nvl(rowData[3]));
+            durationTextField.setText(nvl(rowData[4]));
             genreComboBox.setSelectedItem(rowData[2]);
+            for (int i = 0; i < directorComboBox.getItemCount(); i++) {
+                Object item = directorComboBox.getItemAt(i);
+                if(item.equals(rowData[5])) {
+                    directorComboBox.setSelectedItem(item);
+                    break;
+                }
+            }
         }
         this.setVisible(true);
     }
-    
-    public void updateDirectorsInfo(List<String> companies) {
-        String selected = (String)directorComboBox.getSelectedItem();
-        String idSelected = null;
-        if (selected != null) {
-            idSelected = selected.substring(selected.lastIndexOf("["));
-        }
+
+    public void updateDirectorsInfo(List<SelectItem<Integer, String>> companies) {
+        SelectItem<Integer, String> selected = (SelectItem<Integer, String>) directorComboBox.getSelectedItem();
         //Update companies list        
-        directorComboBox.removeAllItems();        
-        for (int i = 0; i < companies.size(); i++) { 
-            directorComboBox.addItem(companies.get(i));
-            
-            if (idSelected != null && companies.get(i).contains(idSelected))
-                directorComboBox.setSelectedIndex(i);
+        directorComboBox.removeAllItems();
+        int selectedIndex = 0;
+        for (SelectItem<Integer, String> company : companies) {
+            directorComboBox.addItem(company);
+            if (company.equals(selected)) {
+                directorComboBox.setSelectedIndex(selectedIndex);
+            }
+            selectedIndex++;
         }
     }
-    
+
     private void lostConnection() {
         acceptButton.setEnabled(false);
         ServerHandler.getInstance().stopHandler();
@@ -230,7 +233,8 @@ public class FilmDialog extends javax.swing.JDialog {
     }// </editor-fold>//GEN-END:initComponents
     /**
      * Cancellation changes
-     * @param evt 
+     *
+     * @param evt
      */
     private void cancelButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cancelButtonActionPerformed
         if (!addNew && acceptButton.isEnabled()) {
@@ -248,24 +252,28 @@ public class FilmDialog extends javax.swing.JDialog {
     }//GEN-LAST:event_cancelButtonActionPerformed
     /**
      * Applying changes
-     * @param evt 
+     *
+     * @param evt
      */
     private void acceptButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_acceptButtonActionPerformed
-        Object[] data = new Object[6];        
+        Object[] data = new Object[6];
         data[0] = idTextField.getText();
         data[1] = titleTextField.getText();
         data[2] = genreComboBox.getSelectedItem();
         data[3] = yearTextField.getText();
         data[4] = durationTextField.getText();
-        data[5] = directorComboBox.getSelectedItem();
-        
+        Object selectedItem = directorComboBox.getSelectedItem();
+        if(selectedItem != null) {
+            data[5] = ((SelectItem<?,?>)selectedItem).getKey();
+        }
+
         try {
             ClientController.convertFilmValue(data);
         } catch (ModelException ex) {
             statusLabel.setText(ex.getMessage());
             return;
         }
-        
+
         ModelMessage result;
         if (addNew) {
             result = serverHandler.sendRespMessage(
@@ -288,7 +296,7 @@ public class FilmDialog extends javax.swing.JDialog {
             statusLabel.setText((String) result.getData());
             return;
         }
-        
+
         this.setVisible(false);
     }//GEN-LAST:event_acceptButtonActionPerformed
 
@@ -318,4 +326,8 @@ public class FilmDialog extends javax.swing.JDialog {
     private javax.swing.JLabel yearLabel;
     private javax.swing.JTextField yearTextField;
     // End of variables declaration//GEN-END:variables
+
+    private String nvl(Object object) {
+        return object == null ? "" : object.toString();
+    }
 }
