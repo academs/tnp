@@ -112,14 +112,4 @@ public class XMLProtocol implements MessageProtocol {
 
     }
 
-    public static void main(String[] args) throws IOException {
-        context.generateSchema(new SchemaOutputResolver() {
-            @Override
-            public Result createOutput(String namespaceUri, String suggestedFileName) throws IOException {
-                Result r = new StreamResult(System.out);
-                r.setSystemId("1");
-                return r;
-            }
-        });
-    }
 }

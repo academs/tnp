@@ -11,42 +11,44 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 import model.ModelException;
 import model.ServerController;
+import model.jdbc.LockManager;
 
 /**
  *
  * @author Айна и Лена
  */
 public class ModelHandler {
-    
+
     private static ModelHandler instance;
-    
+
     private final SortedMap<Integer, ClientHandler> clients = Collections.synchronizedSortedMap(new TreeMap<Integer, ClientHandler>());
-    
-    private ModelHandler() {        
+
+    private ModelHandler() {
     }
-    
+
     public static ModelHandler getInstance() {
         if (instance == null) {
             instance = new ModelHandler();
         }
         return instance;
     }
-    
+
     public void addClient(int clientNo, MessageProtocol protocol) throws IOException {
         ClientHandler client = new ClientHandler(clientNo, protocol);
         clients.put(clientNo, client);
         client.start();
     }
-    
-    public void removeClient(int clientNo) {        
+
+    public void removeClient(int clientNo) {
+        LockManager.getInstance().releaseLocks(clientNo);
         UpdateInvoker.getInstance().removeClient(clientNo);
-        ClientHandler client = clients.get(clientNo);        
+        ClientHandler client = clients.get(clientNo);
         if (client != null) {
             clients.remove(clientNo);
             client.interrupt();
         }
-    }   
-      
+    }
+
     public synchronized ModelMessage handleMessage(int clientNo, ModelMessage message) {
         ModelMessage response = null;
         switch (message.getType()) {
@@ -92,27 +94,30 @@ public class ModelHandler {
             if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
                 Director director = ServerController.getInstance().getDirector((Integer) message.getData());
                 //Try get lock on editing Director
-                if (tryLockDirector(director, clientNo))      
+                if (tryLockDirector(director, clientNo)) {
                     response = new ModelMessage(ModelMessage.MessageType.REPSONSE_ALLOWED, message.getTarget(), director.getData());
+                }
             } else {
                 Film film = ServerController.getInstance().getFilm((Long) message.getData());
                 //Try get lock on editing Film
-                if (tryLockFilm(film, clientNo))
+                if (tryLockFilm(film, clientNo)) {
                     response = new ModelMessage(ModelMessage.MessageType.REPSONSE_ALLOWED, message.getTarget(), film.getData());
+                }
             }
-            
-            if (response != null) {                
+
+            if (response != null) {
                 System.out.println("Клиент " + clientNo + ": Разрешено редактирование записи");
-            } 
-            else throw new ModelException();
-            
+            } else {
+                throw new ModelException();
+            }
+
         } catch (ModelException ex) {
             response = new ModelMessage(ModelMessage.MessageType.REPSONSE_DENIED, message.getTarget(), "Редактирование запрещено");
             System.out.println("Клиент " + clientNo + ": Запрещено редактирование записи");
-        }        
+        }
         return response;
     }
-    
+
     private ModelMessage stopEditEntity(int clientNo, ModelMessage message) {
         ModelMessage response;
         if (message.getData() != null) {
@@ -121,7 +126,7 @@ public class ModelHandler {
                 UpdateInvoker.getInstance().invokeUpdate(message);
                 if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
                     //Update all Director's Films - field "Director"="Title [ID=DirectorID]"
-                    for (Film film : ((Director)ServerController.getInstance().getDirector((Integer)((Object[])message.getData())[0])).getFilmCollection()) {
+                    for (Film film : ((Director) ServerController.getInstance().getDirector((Integer) ((Object[]) message.getData())[0])).getFilmCollection()) {
                         UpdateInvoker.getInstance().invokeUpdate(new ModelMessage(ModelMessage.MessageType.STOP_EDIT, ModelMessage.EntityTarget.FILM, film.getData()));
                     }
                 }
@@ -137,15 +142,17 @@ public class ModelHandler {
         }
         //Pull off lock
         ClientHandler client = clients.get(clientNo);
-        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {            
+        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
+            LockManager.getInstance().releaseLock(clientNo, new Director(client.getEditingDirectorID()));
             client.setEditingDirectorID(null);
         } else {
+            LockManager.getInstance().releaseLock(clientNo, new Film(client.getEditingFilmID()));
             client.setEditingFilmID(null);
         }
-        
+
         return response;
     }
-    
+
     private ModelMessage deleteEntity(int clientNo, ModelMessage message) {
         ModelMessage response;
         ClientHandler client = clients.get(clientNo);
@@ -184,7 +191,7 @@ public class ModelHandler {
         }
         return response;
     }
-    
+
     private ModelMessage saveModel(int clientNo) {
         ModelMessage response;
         try {
@@ -197,7 +204,7 @@ public class ModelHandler {
         }
         return response;
     }
-    
+
     private ModelMessage loadModel(int clientNo) {
         ModelMessage response;
         try {
@@ -205,61 +212,52 @@ public class ModelHandler {
             if (isModelNotHandled()) {
                 ServerController.getInstance().loadFromFile();
                 response = new ModelMessage(ModelMessage.MessageType.REPSONSE_ALLOWED, null, null);
-                UpdateInvoker.getInstance().invokeUpdate(new ModelMessage(ModelMessage.MessageType.UPDATE, 
+                UpdateInvoker.getInstance().invokeUpdate(new ModelMessage(ModelMessage.MessageType.UPDATE,
                         ModelMessage.EntityTarget.DIRECTOR, ServerController.getInstance().getDirectorsData()));
-                UpdateInvoker.getInstance().invokeUpdate(new ModelMessage(ModelMessage.MessageType.UPDATE, 
+                UpdateInvoker.getInstance().invokeUpdate(new ModelMessage(ModelMessage.MessageType.UPDATE,
                         ModelMessage.EntityTarget.FILM, ServerController.getInstance().getFilmsData()));
                 System.out.println("Клиент " + clientNo + ": Модель загружена");
+            } else {
+                throw new ModelException();
             }
-            else throw new ModelException();
         } catch (ModelException ex) {
             response = new ModelMessage(ModelMessage.MessageType.REPSONSE_DENIED, null, "Загрузка модели отклонена");
             System.out.println("Клиент " + clientNo + ": Загрузка модели отклонена: " + ex.getMessage());
         }
         return response;
     }
-    
+
     private boolean isModelNotHandled() {
-        for (Map.Entry<Integer, ClientHandler> entry : clients.entrySet()) {
-            if ((entry.getValue().getEditingDirectorID() != null) ||
-                    (entry.getValue().getEditingFilmID() != null))
-                return false;
-        }
-        return true;
+        return LockManager.getInstance().empty();
     }
-    
+
     private boolean isDirectorNotHandled(Director director) {
-        for (Map.Entry<Integer, ClientHandler> entry : clients.entrySet()) {
-            if (director.getIdDirector().equals(entry.getValue().getEditingDirectorID())) {                
-                return false;
-            }
-            for (Film film : director.getFilmCollection()) {
-                if (film.getIdFilm().equals(entry.getValue().getEditingFilmID()))
-                    return false;
-            }
-        }
-        return true;
+        return !LockManager.getInstance()
+                .noFilmsLockedForDirectorId(clients, director.getIdDirector());
     }
 
     private boolean tryLockDirector(Director director, int clientNo) {
-        ClientHandler client = clients.get(clientNo);
-        for (Map.Entry<Integer, ClientHandler> entry : clients.entrySet()) {
-            if (director.getIdDirector().equals(entry.getValue().getEditingDirectorID())) {                 
-                return false;
-            }
+        boolean success = LockManager.getInstance().tryLock(clientNo, director);
+        if (!success) {
+            return false;
         }
+        ClientHandler client = clients.get(clientNo);
         client.setEditingDirectorID(director.getIdDirector());
         return true;
     }
 
     private boolean tryLockFilm(Film film, int clientNo) {
-        ClientHandler client = clients.get(clientNo);
-        for (Map.Entry<Integer, ClientHandler> entry : clients.entrySet()) {
-            if (film.getIdFilm().equals(entry.getValue().getEditingFilmID())) {                    
-                return false;
-            }
+        boolean success = LockManager.getInstance().tryLock(clientNo, film);
+        if (!success) {
+            return false;
         }
+        ClientHandler client = clients.get(clientNo);
         client.setEditingFilmID(film.getIdFilm());
         return true;
+    }
+
+    private boolean tryLockDirectorForDelete(Director director, int clientNo) {
+        return !LockManager.getInstance()
+                .noFilmsLockedForDirectorId(clientNo, director.getIdDirector());
     }
 }

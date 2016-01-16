@@ -7,6 +7,7 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import model.communication.protocol.XMLProtocol.DirectorReferenceAdapter;
+import model.jdbc.Entity;
 
 /**
  *
@@ -14,7 +15,7 @@ import model.communication.protocol.XMLProtocol.DirectorReferenceAdapter;
  */
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlRootElement
-public class Film implements Serializable {
+public class Film implements Serializable, Entity {
 
     private static final long serialVersionUID = 1L;
 
@@ -125,6 +126,11 @@ public class Film implements Serializable {
 
     public Object[] getData() {
         return new Object[]{idFilm, title, genre, year, duration, idDirector.getIdDirector()};
+    }
+
+    @Override
+    public Long getId() {
+        return idFilm;
     }
 
 }

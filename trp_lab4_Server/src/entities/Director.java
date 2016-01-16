@@ -8,10 +8,11 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
+import model.jdbc.Entity;
 
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlRootElement
-public class Director implements Serializable {
+public class Director implements Serializable, Entity {
 
     private Integer idDirector;
     private String name;
@@ -96,6 +97,11 @@ public class Director implements Serializable {
     @Override
     public String toString() {
         return "Director{" + "idDirector=" + idDirector + ", name=" + name + ", phone=" + phone + '}';
+    }
+
+    @Override
+    public Number getId() {
+        return idDirector;
     }
 
 }

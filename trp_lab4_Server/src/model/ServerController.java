@@ -2,161 +2,119 @@ package model;
 
 import entities.Director;
 import entities.Film;
-import entities.Genre;
 import java.util.Collection;
-import java.util.List;
 import model.communication.protocol.ModelMessage;
+import model.jdbc.DomainDAOManager;
+import model.jdbc.DomainDAOInterface;
+import model.jdbc.LockManager;
 
 /**
  *
  * @author Айна и Лена
  */
 public class ServerController {
-    
-    private Model model;
+
     private static ServerController instance;
-    
+    private final DomainDAOInterface<Director> directorDAO = DomainDAOManager.getDirectorDAO();
+    private final DomainDAOInterface<Film> filmDAO = DomainDAOManager.getFilmDAO();
+
     private ServerController() {
-        model = new Model();
     }
-    
+
     public static ServerController getInstance() {
         if (instance == null) {
             instance = new ServerController();
         }
         return instance;
     }
-    
+
     public Object[][] getDirectorsData() {
-        List<Director> directors = model.getDirectors();
+        Collection<Director> directors = directorDAO.findAll();
         Object[][] result = new Object[directors.size()][5];
-        for (int i = 0; i < directors.size(); i++) {
-            result[i] = directors.get(i).getData();
+        int i = 0;
+        for (Director director : directors) {
+            result[i] = director.getData();
+            i++;
         }
         return result;
     }
-    
+
     public Object[][] getFilmsData() {
-        List<Film> films = model.getFilms();
+        Collection<Film> films = filmDAO.findAll();
         Object[][] result = new Object[films.size()][6];
-        for (int i = 0; i < films.size(); i++) {
-            result[i] = films.get(i).getData();            
+        int i = 0;
+        for (Film film : films) {
+            result[i] = film.getData();
+            i++;
         }
         return result;
     }
-    
+
     public Director getDirector(int ID) throws ModelException {
-        for(Director director: model.getDirectors()) {
-            if (director.getIdDirector().equals(ID))
-                return director;
+        Director res = directorDAO.find(ID);
+        if (res != null) {
+            return res;
         }
         throw new ModelException("Неверный ID");
     }
 
     public Film getFilm(Long ID) throws ModelException {
-        for(Film film: model.getFilms()) {
-            if (film.getIdFilm().equals(ID))
-                return film;
+        Film res = filmDAO.find(ID);
+        if (res != null) {
+            return res;
         }
         throw new ModelException("Неверный ID");
     }
-    
+
     public Object getEntity(ModelMessage message) throws ModelException {
-        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR)
-            return getDirector((Integer)message.getData());
-        else
-            return getFilm((Long)message.getData());
-    }
-    
-    public void addEntity(ModelMessage message) throws ModelException {
-        Object[] data = (Object[])message.getData();
         if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
-            testDirectorData(data);
-            Director director = new Director(data);
-            model.getDirectors().add(director);
+            return getDirector((Integer) message.getData());
+        } else {
+            return getFilm((Long) message.getData());
         }
-        else {
-            Director parent = testFilmData(data);
-            Film film = new Film(data);
-            film.setIdDirector(parent);
-            parent.getFilmCollection().add(film);
-            model.getFilms().add(film);
-        }
-    }    
-    
-    private void testDirectorData(Object[] data) throws ModelException {
-        Integer ID = (Integer) data[0];
-        for (Director director : model.getDirectors()) {
-            if (director.getIdDirector().equals(ID)) {
-                throw new ModelException("ID: Дублирование");
-            }
-        }
-    }
-    
-    private Director testFilmData(Object[] data) throws ModelException {
-        Long ID = (Long) data[0];
-        for (Film film : model.getFilms()) {
-            if (film.getIdFilm().equals(ID)) {
-                throw new ModelException("ID: Дублирование");
-            }
-        }     
-        Integer icID = (Integer) data[5];
-        Director parent = null;
-        for (Director director : model.getDirectors()) {
-            if (director.getIdDirector().equals(icID)) {
-                parent = director;
-                break;
-            }
-        }
-        if (parent == null)
-            throw new ModelException("DirectorID: Такой компании не существует");
-        return parent;
-    }
-    
-    public void editEntity(ModelMessage message) throws ModelException {
-        Object[] data = (Object[])message.getData();
-        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
-            Director director = getDirector((Integer)data[0]);
-            director.setName((String)data[1]);
-            director.setPhone((Long)data[2]);
-        }
-        else {
-            Film film = getFilm((Long)data[0]);            
-            film.setTitle((String)data[1]);
-            film.setGenre((Genre)data[2]);
-            film.setYear((Short)data[3]);
-            film.setDuration((Short)data[4]);
-            //Removing link to the Director
-            film.getIdDirector().getFilmCollection().remove(film);
-            //Creating link to the Director
-            Integer icID = (Integer) data[5];
-            film.setIdDirector(getDirector(icID));            
-            film.getIdDirector().getFilmCollection().add(film);
-        }
-    } 
-    
-    public void removeEntity(ModelMessage message) throws ModelException {
-       if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
-            Director director = getDirector((Integer)message.getData());
-            Collection<Film> linkedFilms = director.getFilmCollection();
-            //Removing linked Films
-            for(Film film: linkedFilms)
-                model.getFilms().remove(film);
-            model.getDirectors().remove(director);
-        }
-        else {
-            Film film = getFilm((Long)message.getData());
-            //Removing linked Director
-            film.getIdDirector().getFilmCollection().remove(film);
-            model.getFilms().remove(film);
-        }
-    }
-    
-    public void loadFromFile() throws ModelException{
-        model = ModelLoader.loadFromXMLFile();
     }
 
-    public void saveToFile() throws ModelException{
-        ModelLoader.saveToXMLFile(model);
+    public void addEntity(ModelMessage message) throws ModelException {
+        Object[] data = (Object[]) message.getData();
+        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
+            Director director = new Director(data);
+            director.setIdDirector(null); // TODO убрать из API
+            directorDAO.create(director);
+        } else {
+            Film film = new Film(data);
+            film.setIdFilm(null); // TODO убрать из API
+            filmDAO.create(film);
+        }
+    }
+
+    public void editEntity(ModelMessage message) throws ModelException {
+        Object[] data = (Object[]) message.getData();
+        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
+            Director director = new Director(data);
+            directorDAO.update(director);
+        } else {
+            Film film = new Film(data);
+            filmDAO.update(film);
+        }
+    }
+
+    public void removeEntity(ModelMessage message) throws ModelException {
+        if (message.getTarget() == ModelMessage.EntityTarget.DIRECTOR) {
+            directorDAO.remove((Integer) message.getData());
+        } else {
+            filmDAO.remove((Long) message.getData());
+        }
+    }
+
+    public void loadFromFile() throws ModelException {
+        //Model model = ModelLoader.loadFromXMLFile();
+        //throw new UnsupportedOperationException("Операция пока ещё не реализована");
+        DomainDAOManager.loadFromXML();
+    }
+
+    public void saveToFile() throws ModelException {
+        //ModelLoader.saveToXMLFile(model);
+        //throw new UnsupportedOperationException("Операция пока ещё не реализована");
+        DomainDAOManager.saveToXML();
     }
 }

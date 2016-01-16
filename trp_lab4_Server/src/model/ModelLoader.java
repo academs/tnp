@@ -64,13 +64,13 @@ public class ModelLoader {
         }
     }
 
-    public static Model loadFromXMLFile() throws ModelException {
+    public static Model loadFromXMLFile(String filename) throws ModelException {
         if (error != null) {
             throw new RuntimeException(error);
         }
         try {
             BufferedInputStream ois = new BufferedInputStream(
-                    new FileInputStream("model.xml"));
+                    new FileInputStream(filename));
             try {
                 Unmarshaller um = context.createUnmarshaller();
                 Model res = (Model) um.unmarshal(ois);
@@ -86,13 +86,13 @@ public class ModelLoader {
         }
     }
 
-    public static void saveToXMLFile(Model model) throws ModelException {
+    public static void saveToXMLFile(Model model, String filename) throws ModelException {
         if (error != null) {
             throw new RuntimeException(error);
         }
         try {
             BufferedOutputStream oos = new BufferedOutputStream(
-                    new FileOutputStream("model.xml"));
+                    new FileOutputStream(filename));
             try {
                 Marshaller m = context.createMarshaller();
                 m.setProperty(Marshaller.JAXB_ENCODING, "UTF-8");
@@ -117,24 +117,24 @@ public class ModelLoader {
         Map<Integer, Director> directories = new HashMap<Integer, Director>();
         if (model.getDirectors() != null && model.getFilms() != null) {
             for (Director d : model.getDirectors()) {
-                if(d.getIdDirector() == null) {
+                if (d.getIdDirector() == null) {
                     throw new ModelException(String.format("Ошибка целостности данных! "
                             + "Для режиссёра %s не задан идентификатор", d.getName()));
                 }
                 directories.put(d.getIdDirector(), d);
             }
-            for(Film f : model.getFilms()) {
+            for (Film f : model.getFilms()) {
                 Director proxy = f.getIdDirector();
-                if(f.getIdFilm() == null) {
+                if (f.getIdFilm() == null) {
                     throw new ModelException(String.format("Ошибка целостности данных! "
                             + "Для фильма %s не задан идентификатор", f.getTitle()));
                 }
-                if(proxy == null || proxy.getIdDirector() == null) {
+                if (proxy == null || proxy.getIdDirector() == null) {
                     throw new ModelException(String.format("Ошибка целостности данных! "
                             + "Для фильма %s не задан режиссёр", f.getIdFilm()));
                 }
                 Director real = directories.get(proxy.getIdDirector());
-                if(real == null) {
+                if (real == null) {
                     throw new ModelException(String.format("Ошибка целостности данных! "
                             + "Для фильма %s задан несуществующий режиссёр", f.getIdFilm()));
                 }
@@ -143,34 +143,5 @@ public class ModelLoader {
             }
         }
     }
-    
-        
-    public static void main(String[] args) throws IOException, ModelException {
-//        context.generateSchema(new SchemaOutputResolver() {
-//            @Override
-//            public Result createOutput(String namespaceUri, String suggestedFileName) throws IOException {
-//                Result r = new StreamResult(System.out);
-//                r.setSystemId("1");
-//                return r;
-//            }
-//        });
-        
-        Director d = new Director();
-        d.setIdDirector(15);
-        d.setName("ada");
-        Film f = new Film();
-        f.setIdFilm(11L);
-        f.setGenre(Genre.DRAMA);
-        f.setIdDirector(d);
-        d.getFilmCollection().add(f);
-        Model m = new Model();
-        m.getDirectors().add(d);
-        m.getFilms().add(f);
-        saveToXMLFile(m);
-        m = loadFromXMLFile();
-        System.out.println("Режиссёров: " + m.getDirectors().size());
-        System.out.println(m.getDirectors());
-        System.out.println("Фильмов: " + m.getFilms().size());
-        System.out.println(m.getFilms());
-    }
+
 }
