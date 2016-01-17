@@ -167,17 +167,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
 
     @Override
     public Collection<Film> filmsForDirector(Number id) {
-        try {
-            Director d = find(id);
-            if (d != null) {
-                return d.getFilmCollection();
-            } else {
-                throw new RuntimeException("Режиссёр не найден");
-            }
-        } catch (ModelException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
+		return DomainDAOManager.getFilmDAO().filmsForDirector(id);
     }
 
 }

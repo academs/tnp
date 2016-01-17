@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+  <xs:element name="director" type="director"/>
+
+  <xs:element name="film" type="film"/>
+
+  <xs:element name="model" type="model"/>
+
+  <xs:complexType name="model">
+    <xs:sequence>
+      <xs:element name="directors" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="director" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+      <xs:element name="films" minOccurs="0">
+        <xs:complexType>
+          <xs:sequence>
+            <xs:element ref="film" minOccurs="0" maxOccurs="unbounded"/>
+          </xs:sequence>
+        </xs:complexType>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="director">
+    <xs:sequence>
+      <xs:element name="idDirector" type="xs:int" minOccurs="0"/>
+      <xs:element name="name" type="xs:string"/>
+      <xs:element name="phone" type="xs:long" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="film">
+    <xs:sequence>
+      <xs:element name="duration" type="xs:short" minOccurs="0"/>
+      <xs:element name="genre" type="genre"/>
+      <xs:element name="idDirector" type="xs:int"/>
+      <xs:element name="idFilm" type="xs:long" minOccurs="0"/>
+      <xs:element name="title" type="xs:string"/>
+      <xs:element name="year" type="xs:short" minOccurs="0"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:simpleType name="genre">
+    <xs:restriction base="xs:string">
+      <xs:enumeration value="ACTION"/>
+      <xs:enumeration value="COMEDY"/>
+      <xs:enumeration value="DRAMA"/>
+      <xs:enumeration value="FANTASY"/>
+      <xs:enumeration value="HORROR"/>
+    </xs:restriction>
+  </xs:simpleType>
+</xs:schema>
