@@ -88,6 +88,7 @@ public class LockManager {
         Lock lock = new Lock(entity, client);
         if (entity instanceof Film && !isLocked(lock, lockedFilms)) {
             lockedFilms.put(entity.getId(), lock);
+			return true;
         }
         if (entity instanceof Director && !isLocked(lock, lockedDirectors)) {
             lockedDirectors.put(entity.getId(), lock);
