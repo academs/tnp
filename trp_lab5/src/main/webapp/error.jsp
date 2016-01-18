@@ -10,13 +10,15 @@
         <script src="${pageContext.request.contextPath}/js/bootstrap.min.js"></script>
     </head>
     <body>
-        <%@include file="navigation.jspf" %>
-        <c:if test="${not empty exception }">
-            <p class="text-danger">Oops!</p>
-            <p class="text-danger">${exception.stackTrace}</p>
-        </c:if>
-        <c:if test="${empty exception }">
-            <p class="text-danger">При выполнении запроса произошла ошибка</p>
-        </c:if>
+        <div class="container">
+            <%@include file="navigation.jspf" %>
+            <c:if test="${not empty exception }">
+                <p class="text-danger">Oops!</p>
+                <p class="text-danger">${exception.stackTrace}</p>
+            </c:if>
+            <c:if test="${empty exception }">
+                <p class="text-danger">При выполнении запроса произошла ошибка</p>
+            </c:if>
+        </div>
     </body>
 </html>
