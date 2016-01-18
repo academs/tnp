@@ -11,7 +11,7 @@
                           non-transactional-connections="false" pool-resize-quantity="2" 
                           statement-timeout-in-seconds="-1" steady-pool-size="8" validate-atmost-once-period-in-seconds="0" 
                           validation-table-name="DUAL" wrap-jdbc-objects="false"
-                          name="java:app/filmsPool" 
+                          name="filmsPool" 
                           res-type="javax.sql.DataSource" 
                           datasource-classname="org.postgresql.ds.PGPoolingDataSource">
         <property name="URL" value="jdbc:postgresql://127.0.0.1:5432/films"/>
@@ -21,7 +21,7 @@
         <property name="Port" value="5432"/>
         <property name="ServerName" value="127.0.0.1"/>
     </jdbc-connection-pool>
-    <jdbc-resource jndi-name="java:app/jdbc/films" 
-                   pool-name="java:app/filmsPool" 
+    <jdbc-resource jndi-name="jdbc/films" 
+                   pool-name="filmsPool" 
                    enabled="true" />
 </resources>

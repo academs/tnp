@@ -19,12 +19,12 @@ import model.ModelException;
 @Stateless(name = "filmDAO")
 public class FilmDAO extends AbstractDAO<Film> {
 
-    @Resource(name = "jdbc/films")
+    @Resource(lookup = "java:app/jdbc/films")
     private DataSource dataSource;
 
     @EJB
     private DirectorDAO directorDAO;
-    
+
     public List<Film> filmsForDirector(Number directorId) {
         try {
             List<Film> entities = new ArrayList<>();

@@ -19,7 +19,7 @@ import model.ModelException;
 @Stateless(name = "directorDAO")
 public class DirectorDAO extends AbstractDAO<Director> {
 
-    @Resource(lookup = "jdbc/films")
+    @Resource(lookup = "java:app/jdbc/films")
     private DataSource dataSource;
     
     @EJB
