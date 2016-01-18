@@ -8,6 +8,7 @@ import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import log.LogProducer;
 import model.ModelException;
 
 @Stateless(name = "directorDAO")
@@ -18,10 +19,17 @@ public class DirectorDAO extends AbstractDAO<Director> {
 
     @EJB
     private FilmDAO filmDAO;
+    
+    @EJB
+    private LogProducer log;
 
     @Override
     public void remove(Number id) throws ModelException {
-        em.remove(find(id));
+        Director d = find(id);
+        if(d != null) {
+            em.remove(d);
+            log.send(d);
+        }
     }
 
     @Override
@@ -32,6 +40,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     @Override
     public void create(Director entity) throws ModelException {
         em.persist(entity);
+        log.send(entity);
     }
 
     @Override
@@ -66,12 +75,16 @@ public class DirectorDAO extends AbstractDAO<Director> {
 
     @Override
     public void removeAll() throws ModelException {
-        em.createQuery("delete from Director d").executeUpdate();
+        for(Director d : findAll()) {
+            em.remove(d);
+            log.send(d);
+        }
     }
 
     @Override
     public void update(Director entity) throws ModelException {
         em.merge(entity);
+        log.send(entity);
     }
 
 }

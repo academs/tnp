@@ -24,4 +24,15 @@
     <jdbc-resource jndi-name="jdbc/films" 
                    pool-name="filmsPool" 
                    enabled="true" />
+    <admin-object-resource jndi-name="jms/logQueue"  enabled="true"
+                           res-type="javax.jms.Queue"  res-adapter="jmsra">
+        <property name="Name" value="logQueue" />
+    </admin-object-resource>
+    <connector-connection-pool name="jms/logConnectonPool"
+                               connection-definition-name="javax.jms.QueueConnectionFactory"  
+                               resource-adapter-name="jmsra"/>
+    <connector-resource pool-name="jms/logConnectonPool" 
+                        jndi-name="jms/logConnectionFactory"
+                        enabled="true" />
+
 </resources>

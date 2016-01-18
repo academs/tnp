@@ -4,9 +4,11 @@ import entities.Film;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.ejb.EJB;
 import javax.ejb.Stateless;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import log.LogProducer;
 import model.ModelException;
 
 @Stateless(name = "filmDAO")
@@ -14,6 +16,9 @@ public class FilmDAO extends AbstractDAO<Film> {
 
     @PersistenceContext
     private EntityManager em;
+
+    @EJB
+    private LogProducer log;
 
     @Override
     public List<Film> filmsForDirector(Number directorId) {
@@ -27,17 +32,20 @@ public class FilmDAO extends AbstractDAO<Film> {
         Film f = find(id);
         if (f != null) {
             em.remove(f);
+            log.send(f);
         }
     }
 
     @Override
     public void update(Film entity) throws ModelException {
         em.merge(entity);
+        log.send(entity);
     }
 
     @Override
     public void create(Film entity) throws ModelException {
         em.persist(entity);
+        log.send(entity);
     }
 
     @Override
@@ -72,7 +80,10 @@ public class FilmDAO extends AbstractDAO<Film> {
 
     @Override
     public void removeAll() throws ModelException {
-        em.createQuery("delete from Film f").executeUpdate();
+        for(Film f : findAll()) {
+            em.remove(f);
+            log.send(f);
+        }
     }
 
 }
