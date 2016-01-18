@@ -4,21 +4,31 @@ import entities.Director;
 import entities.Film;
 import entities.Genre;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.sql.DataSource;
 import model.ModelException;
 
+@Stateless(name = "filmDAO")
 public class FilmDAO extends AbstractDAO<Film> {
 
+    @Resource(name = "jdbc/films")
+    private DataSource dataSource;
+
+    @EJB
+    private DirectorDAO directorDAO;
+    
     public List<Film> filmsForDirector(Number directorId) {
         try {
             List<Film> entities = new ArrayList<>();
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement find = connection
                         .prepareStatement("SELECT * FROM film WHERE director_id=?")) {
                     find.setInt(1, directorId.intValue());
@@ -41,7 +51,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     public Collection<Film> loadFromDatabase(Object... params) {
         try {
             List<Film> entities = new ArrayList<>();
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement find = connection
                         .prepareStatement("SELECT * FROM film WHERE lower(title) like '%'||lower(?)||'%'")) {
                     find.setString(1, (String) params[0]);
@@ -64,7 +74,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     protected Collection<Film> loadAllFromDatabase() {
         try {
             List<Film> entities = new ArrayList<>();
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement find = connection
                         .prepareStatement("SELECT * FROM film")) {
                     try (ResultSet res = find.executeQuery()) {
@@ -86,7 +96,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     protected Film loadFromDatabase(Number id) {
         try {
             Film entity = null;
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement find = connection
                         .prepareStatement("SELECT * FROM film WHERE id=?")) {
                     find.setLong(1, id.longValue());
@@ -107,7 +117,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     @Override
     protected void insertIntoDatabase(Film entity) throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement insertStatement = connection
                         .prepareStatement("INSERT INTO film(title, genre, duration, year, director_id) "
                                 + " VALUES(?, ?, ?, ?, ?)", new String[]{"id"})) {
@@ -137,7 +147,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     @Override
     protected void updateDatabase(Film entity) throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement updateStatement = connection
                         .prepareStatement("UPDATE film SET title=?, genre=?, duration=?, year=?, director_id=?"
                                 + " WHERE id=?")) {
@@ -163,7 +173,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     @Override
     protected void removeFromDatabase(Number id) throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement deleteStatement = connection
                         .prepareStatement("DELETE FROM film WHERE id=?")) {
                     deleteStatement.setLong(1, id.longValue());
@@ -179,7 +189,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     @Override
     protected void removeAllFromDatabase() throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement deleteStatement = connection
                         .prepareStatement("DELETE FROM film")) {
                     deleteStatement.executeUpdate();
@@ -207,7 +217,7 @@ public class FilmDAO extends AbstractDAO<Film> {
         if (year != null && year instanceof Number) {
             f.setYear(((Number) year).shortValue());
         }
-        Director d = DomainDAOManager.getDirectorDAO().find(res.getInt("director_id"));
+        Director d = directorDAO.find(res.getInt("director_id"));
         f.setIdDirector(d);
         return f;
     }
@@ -217,7 +227,7 @@ public class FilmDAO extends AbstractDAO<Film> {
         Film oldValue = find(id);
         super.remove(id);
         if (oldValue != null && oldValue.getIdDirector() != null) {
-            DomainDAOManager.getDirectorDAO().refresh(oldValue.getIdDirector());
+            directorDAO.refresh(oldValue.getIdDirector());
         }
     }
 
@@ -226,14 +236,14 @@ public class FilmDAO extends AbstractDAO<Film> {
         Film oldValue = find(entity.getId());
         super.update(entity);
         if (oldValue != null && oldValue.getIdDirector() != null) {
-            DomainDAOManager.getDirectorDAO().refresh(oldValue.getIdDirector());
+            directorDAO.refresh(oldValue.getIdDirector());
         }
     }
 
     @Override
     public void create(Film entity) throws ModelException {
         super.create(entity);
-        DomainDAOManager.getDirectorDAO().refresh(entity.getIdDirector());
+        directorDAO.refresh(entity.getIdDirector());
     }
 
 }

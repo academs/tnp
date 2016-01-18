@@ -4,8 +4,7 @@ import entities.Director;
 import entities.Film;
 import entities.Genre;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import servlet.base.*;
@@ -14,15 +13,18 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import model.ModelException;
 import model.communication.protocol.EntityTarget;
+import model.jdbc.DirectorDAO;
 import model.jdbc.DomainDAOInterface;
-import model.jdbc.DomainDAOManager;
+import model.jdbc.FilmDAO;
 import servlet.InvalidStateException;
 
 @WebServlet(name = "SaveFilmServlet", urlPatterns = "/films/save")
 public class SaveFilmServlet extends SaveBaseServlet<Film> {
 
-    private DomainDAOInterface<Film> filmDAO = DomainDAOManager.getFilmDAO();
-    private DomainDAOInterface<Director> directorDAO = DomainDAOManager.getDirectorDAO();
+    @EJB
+    private FilmDAO filmDAO;
+    @EJB
+    private DirectorDAO directorDAO;
 
     @Override
     public DomainDAOInterface<Film> getDAO() {

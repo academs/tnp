@@ -2,6 +2,7 @@ package model.jdbc;
 
 import entities.Film;
 import java.util.Collection;
+import javax.ejb.Remote;
 import model.ModelException;
 
 /**
@@ -9,6 +10,7 @@ import model.ModelException;
  *
  * @param <T> класс-сущность
  */
+@Remote
 public interface DomainDAOInterface<T extends Entity> {
 
     void create(T entity) throws ModelException;

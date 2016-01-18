@@ -10,15 +10,26 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Resource;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.sql.DataSource;
 import model.ModelException;
 
+@Stateless(name = "directorDAO")
 public class DirectorDAO extends AbstractDAO<Director> {
 
+    @Resource(lookup = "jdbc/films")
+    private DataSource dataSource;
+    
+    @EJB
+    private FilmDAO filmDAO;
+    
     @Override
     protected Collection<Director> loadAllFromDatabase() {
         try {
             List<Director> entities = new ArrayList<>();
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement find = connection
                         .prepareStatement("SELECT * FROM director")) {
                     try (ResultSet res = find.executeQuery()) {
@@ -40,7 +51,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     protected Collection<Director> loadFromDatabase(Object... params) {
         try {
             List<Director> entities = new ArrayList<>();
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement findStatement = connection
                         .prepareStatement("SELECT * FROM director WHERE lower(name) "
                                 + " like '%' || lower(?) || '%'")) {
@@ -64,7 +75,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     protected Director loadFromDatabase(Number id) {
         try {
             Director entity = null;
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement findStatement = connection
                         .prepareStatement("SELECT * FROM director WHERE id=?")) {
                     findStatement.setInt(1, id.intValue());
@@ -88,7 +99,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     @Override
     protected void insertIntoDatabase(Director entity) throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement insertStatement = connection
                         .prepareStatement("INSERT INTO director(name, phone) "
                                 + " VALUES(?, ?)", new String[]{"id"})) {
@@ -111,7 +122,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     @Override
     protected void updateDatabase(Director entity) throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement updateStatement = connection
                         .prepareStatement("UPDATE director SET name=?, phone=? WHERE id = ?")) {
                     updateStatement.setString(1, entity.getName());
@@ -129,7 +140,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     @Override
     protected void removeFromDatabase(Number id) throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement deleteStatement = connection
                         .prepareStatement("DELETE FROM director WHERE id=?")) {
                     deleteStatement.setInt(1, id.intValue());
@@ -145,7 +156,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     @Override
     protected void removeAllFromDatabase() throws ModelException {
         try {
-            try (Connection connection = DriverManager.getConnection(url, user, password)) {
+            try (Connection connection = dataSource.getConnection()) {
                 try (PreparedStatement deleteStatement = connection
                         .prepareStatement("DELETE FROM director")) {
                     deleteStatement.executeUpdate();
@@ -164,8 +175,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
             @Override
             public Collection<Film> getFilmCollection() {
                 if (!loaded) {
-                    DomainDAOInterface films = DomainDAOManager.getFilmDAO();
-                    super.setFilmCollection(films.filmsForDirector(getId()));
+                    super.setFilmCollection(filmDAO.filmsForDirector(getId()));
                     loaded = true;
                 }
                 return super.getFilmCollection();
@@ -180,17 +190,16 @@ public class DirectorDAO extends AbstractDAO<Director> {
 
     @Override
     public void remove(Number id) throws ModelException {
-        DomainDAOInterface films = DomainDAOManager.getFilmDAO();
         for (Film film : filmsForDirector(id)) {
             film.setIdDirector(null);
-            films.remove(film.getId());
+            filmDAO.remove(film.getId());
         }
         super.remove(id);
     }
 
     @Override
     public Collection<Film> filmsForDirector(Number id) {
-        return DomainDAOManager.getFilmDAO().filmsForDirector(id);
+        return filmDAO.filmsForDirector(id);
     }
 
 }

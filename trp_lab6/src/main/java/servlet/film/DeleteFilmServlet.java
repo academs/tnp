@@ -2,6 +2,7 @@ package servlet.film;
 
 import entities.Film;
 import java.io.IOException;
+import javax.ejb.EJB;
 import javax.servlet.RequestDispatcher;
 import javax.servlet.ServletException;
 import servlet.base.*;
@@ -10,12 +11,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import model.communication.protocol.EntityTarget;
 import model.jdbc.DomainDAOInterface;
-import model.jdbc.DomainDAOManager;
+import model.jdbc.FilmDAO;
 
 @WebServlet(name = "DeleteFilmServlet", urlPatterns = "/films/delete")
 public class DeleteFilmServlet extends DeleteBaseServlet<Film> {
 
-    private DomainDAOInterface<Film> filmDAO = DomainDAOManager.getFilmDAO();
+    @EJB
+    private FilmDAO filmDAO;
 
     @Override
     public DomainDAOInterface<Film> getDAO() {

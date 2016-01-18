@@ -14,10 +14,6 @@ import model.ModelException;
  */
 public abstract class AbstractDAO<T extends Entity> implements DomainDAOInterface<T> {
 
-    protected static final String url = "jdbc:postgresql://127.0.0.1:5432/films";
-    protected static final String user = "postgres";
-    protected static final String password = "postgres";
-
     private final ThreadLocal<Map<Number, T>> loaded = new ThreadLocal() {
 
         @Override
