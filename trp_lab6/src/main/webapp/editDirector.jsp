@@ -21,10 +21,10 @@
                     <%@include file="messages.jspf" %>
                     <label for="name" class="control-label col-xs-4">Имя:</label>
                     <input type="text" name="name" class="form-control" 
-                           value="${editDirectorEntity.name}" required="true" />
+                           value="${not empty param.name ? param.name : editDirectorEntity.name}" required="true" />
                     <label for="phone" class="control-label col-xs-4">Телефон:</label>                   
                     <input type="text" name="phone" class="form-control"
-                           value="${editDirectorEntity.phone}" />
+                           value="${not empty param.phone ? param.phone : editDirectorEntity.phone}" />
                     <br />
                     <button type="submit" class="btn btn-primary  btn-md">Сохранить</button>
                 </div>

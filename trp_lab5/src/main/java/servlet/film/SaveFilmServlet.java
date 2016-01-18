@@ -89,6 +89,7 @@ public class SaveFilmServlet extends SaveBaseServlet<Film> {
             RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/films/find");
             dispatcher.forward(request, response);
         } else {
+			request.setAttribute("directors", directorDAO.findAll());
             RequestDispatcher dispatcher = getServletContext().getRequestDispatcher("/editFilm.jsp");
             dispatcher.forward(request, response);
         }

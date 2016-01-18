@@ -21,7 +21,7 @@
                     <%@include file="messages.jspf" %>
                     <label for="title" class="control-label col-xs-4">Название:</label>
                     <input type="text" name="title" class="form-control" 
-                           value="${editFilmEntity.title}" required="true" />
+                           value="${not empty param.title ? param.title : editFilmEntity.title}" required="true" />
                     <label for="genre" class="control-label col-xs-4">Жанр:</label>
                     <select type="text" name="genre" class="form-control"
                             value="${editFilmEntity.genre eq null ? '' : editFilmEntity.genre.name}" 
@@ -39,10 +39,10 @@
                     </select>
                     <label for="year" class="control-label col-xs-4">Год:</label>
                     <input type="text" name="year" class="form-control"
-                           value="${editFilmEntity.year}" />
+                           value="${not empty param.year ? param.year : editFilmEntity.year}" />
                     <label for="duration" class="control-label col-xs-4">Длительность:</label>
                     <input type="text" name="duration" class="form-control"
-                           value="${editFilmEntity.duration}" />
+                           value="${not empty param.duration ? param.duration : editFilmEntity.duration}" />
                     <label for="director" class="control-label col-xs-4">Режиссёр</label>
                     <select type="text" name="director" class="form-control"
                             value="${editFilmEntity.directorName}" required="true">
