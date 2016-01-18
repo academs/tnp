@@ -7,19 +7,19 @@
                           fail-all-connections="false" 
                           idle-timeout-in-seconds="300" is-connection-validation-required="false" is-isolation-level-guaranteed="true" 
                           lazy-connection-association="false" lazy-connection-enlistment="false" match-connections="false" 
-                          max-connection-usage-count="0" max-pool-size="32" max-wait-time-in-millis="60000" 
+                          max-connection-usage-count="0" max-pool-size="16" max-wait-time-in-millis="60000" 
                           non-transactional-connections="false" pool-resize-quantity="2" 
                           statement-timeout-in-seconds="-1" steady-pool-size="8" validate-atmost-once-period-in-seconds="0" 
                           validation-table-name="DUAL" wrap-jdbc-objects="false"
                           name="filmsPool" 
                           res-type="javax.sql.DataSource" 
-                          datasource-classname="org.postgresql.ds.PGPoolingDataSource">
-        <property name="URL" value="jdbc:postgresql://127.0.0.1:5432/films"/>
+                          datasource-classname="org.apache.derby.jdbc.ClientDataSource">
+        <!--<property name="URL" value="jdbc:derby://localhost:1527/films"/>-->
+        <property name="ServerName" value="localhost"/>
+        <property name="Port" value="1527"/>
+        <property name="DatabaseName" value="films"/>
         <property name="User" value="postgres"/>
         <property name="Password" value="postgres"/>
-        <property name="DatabaseName" value="films"/>
-        <property name="Port" value="5432"/>
-        <property name="ServerName" value="127.0.0.1"/>
     </jdbc-connection-pool>
     <jdbc-resource jndi-name="jdbc/films" 
                    pool-name="filmsPool" 

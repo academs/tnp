@@ -109,7 +109,7 @@ public class FilmDAO extends AbstractDAO<Film> {
         try {
             try (Connection connection = DriverManager.getConnection(url, user, password)) {
                 try (PreparedStatement insertStatement = connection
-                        .prepareStatement("INSERT INTO film(title, genre, duration, year, director_id) "
+                        .prepareStatement("INSERT INTO film(title, genre, duration, \"year\", director_id) "
                                 + " VALUES(?, ?, ?, ?, ?)", new String[]{"id"})) {
                     insertStatement.setString(1, entity.getTitle());
                     if (entity.getGenre() != null) {
@@ -139,7 +139,7 @@ public class FilmDAO extends AbstractDAO<Film> {
         try {
             try (Connection connection = DriverManager.getConnection(url, user, password)) {
                 try (PreparedStatement updateStatement = connection
-                        .prepareStatement("UPDATE film SET title=?, genre=?, duration=?, year=?, director_id=?"
+                        .prepareStatement("UPDATE film SET title=?, genre=?, duration=?, \"year\"=?, director_id=?"
                                 + " WHERE id=?")) {
                     updateStatement.setString(1, entity.getTitle());
                     if (entity.getGenre() != null) {
