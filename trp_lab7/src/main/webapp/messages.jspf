@@ -1,0 +1,20 @@
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/xml"  prefix="x" %>
+<%@ page pageEncoding="UTF-8" %>
+
+<c:import url="message.xsl" var="messageXSLT" />
+<c:if test="${not empty infoMessage}">
+    <x:transform xml="${infoMessage}" xslt="${messageXSLT}">
+        <x:param name="level" value="success" />
+    </x:transform>
+</c:if>
+<c:if test="${not empty warnMessage}">
+    <x:transform xml="${warnMessage}" xslt="${messageXSLT}">
+        <x:param name="level" value="warning" />
+    </x:transform>
+</c:if>
+<c:if test="${not empty errorMessage}">
+    <x:transform xml="${errorMessage}" xslt="${messageXSLT}">
+        <x:param name="level" value="danger" />
+    </x:transform>
+</c:if>
