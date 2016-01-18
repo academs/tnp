@@ -44,7 +44,7 @@
                                 <form action="{$contextPath}/films/delete" method="POST">
                                     <input type="hidden" name="id" value="{idFilm}" />
                                     <button type="submit" class="btn btn-info">
-                                        <span class="glyphicon glyphicon-trash" />Удалить
+                                        <span class="glyphicon glyphicon-trash" />Remove
                                     </button>
                                 </form>
                             </td>
