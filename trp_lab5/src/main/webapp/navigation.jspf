@@ -1,0 +1,10 @@
+
+<%@ page pageEncoding="UTF-8" %>
+<h1 align="center" id="header">Лабораторный проект<br/><%=pageName%></h1>
+<nav>        
+    <ul class="nav nav-pills">
+        <li role="presentation"><a href="${pageContext.request.contextPath}/main">Главная</a></li>
+        <li role="presentation"><a href="${pageContext.request.contextPath}/directors/find">Режиссёры</a></li>
+        <li role="presentation"><a href="${pageContext.request.contextPath}/films/find">Фильмы</a></li>
+    </ul>
+</nav>
