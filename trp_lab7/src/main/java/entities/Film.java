@@ -1,6 +1,16 @@
 package entities;
 
 import java.io.Serializable;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -8,7 +18,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import model.communication.protocol.XMLProtocol.DirectorReferenceAdapter;
-import model.jdbc.Entity;
 
 /**
  *
@@ -16,7 +25,8 @@ import model.jdbc.Entity;
  */
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlRootElement
-public class Film implements Serializable, Entity {
+@Entity
+public class Film implements Serializable, model.jdbc.Entity {
 
     private static final long serialVersionUID = 1L;
 
@@ -49,6 +59,9 @@ public class Film implements Serializable, Entity {
         this.idDirector = new Director((Integer) data[5]);
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     public Long getIdFilm() {
         return idFilm;
     }
@@ -58,6 +71,7 @@ public class Film implements Serializable, Entity {
     }
 
     @XmlElement(required = true)
+    @Column(name = "title", nullable = false)
     public String getTitle() {
         return title;
     }
@@ -67,6 +81,8 @@ public class Film implements Serializable, Entity {
     }
 
     @XmlElement(required = true)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "genre", nullable = false)
     public Genre getGenre() {
         return genre;
     }
@@ -75,6 +91,7 @@ public class Film implements Serializable, Entity {
         this.genre = genre;
     }
 
+    @Column(name = "\"year\"")
     public Short getYear() {
         return year;
     }
@@ -83,6 +100,7 @@ public class Film implements Serializable, Entity {
         this.year = year;
     }
 
+    @Column(name = "duration")
     public Short getDuration() {
         return duration;
     }
@@ -93,6 +111,8 @@ public class Film implements Serializable, Entity {
 
     @XmlElement(required = true)
     @XmlJavaTypeAdapter(DirectorReferenceAdapter.class)
+    @ManyToOne(optional = false)
+    @JoinColumn(name = "director_id", referencedColumnName = "id")
     public Director getIdDirector() {
         return idDirector;
     }
@@ -125,11 +145,13 @@ public class Film implements Serializable, Entity {
         return "Film{" + "idFilm=" + idFilm + ", title=" + title + ", genre=" + genre + ", year=" + year + ", duration=" + duration + ", idDirector=" + idDirector + '}';
     }
 
+    @Transient
     public Object[] getData() {
         return new Object[]{idFilm, title, genre, year, duration, idDirector.getIdDirector()};
     }
 
     @XmlTransient
+    @Transient
     @Override
     public Long getId() {
         return idFilm;
@@ -140,6 +162,7 @@ public class Film implements Serializable, Entity {
         this.idFilm = n.longValue();
     }
 
+    @Transient
     public String getGenreName() {
         return getGenre() != null ? getGenre().getName() : null;
     }
@@ -147,6 +170,7 @@ public class Film implements Serializable, Entity {
     public void setGenreName(String genre) {
     }
 
+    @Transient
     public String getDirectorName() {
         return getIdDirector() != null ? getIdDirector().getName() : null;
     }

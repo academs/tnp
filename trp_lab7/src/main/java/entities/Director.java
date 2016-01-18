@@ -3,16 +3,24 @@ package entities;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Transient;
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
-import model.jdbc.Entity;
 
 @XmlAccessorType(XmlAccessType.PROPERTY)
 @XmlRootElement
-public class Director implements Serializable, Entity {
+@Entity
+public class Director implements Serializable, model.jdbc.Entity {
 
     private Integer idDirector;
     private String name;
@@ -37,6 +45,9 @@ public class Director implements Serializable, Entity {
         this.phone = (Long) data[2];
     }
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id")
     public Integer getIdDirector() {
         return idDirector;
     }
@@ -46,6 +57,7 @@ public class Director implements Serializable, Entity {
     }
 
     @XmlElement(required = true)
+    @Column(name = "name", nullable = false)
     public String getName() {
         return name;
     }
@@ -54,6 +66,7 @@ public class Director implements Serializable, Entity {
         this.name = name;
     }
 
+    @Column(name = "phone")
     public Long getPhone() {
         return phone;
     }
@@ -63,6 +76,7 @@ public class Director implements Serializable, Entity {
     }
 
     @XmlTransient
+    @OneToMany(mappedBy = "idDirector", cascade = CascadeType.REMOVE)
     public Collection<Film> getFilmCollection() {
         return filmCollection;
     }
@@ -90,6 +104,7 @@ public class Director implements Serializable, Entity {
         return true;
     }
 
+    @Transient
     public Object[] getData() {
         return new Object[]{idDirector, name, phone};
     }
@@ -100,6 +115,7 @@ public class Director implements Serializable, Entity {
     }
 
     @XmlTransient
+    @Transient
     @Override
     public Number getId() {
         return idDirector;
