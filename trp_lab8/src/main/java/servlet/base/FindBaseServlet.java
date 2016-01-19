@@ -26,15 +26,19 @@ public abstract class FindBaseServlet<T extends Entity> extends AbstractDomainSe
 
     protected boolean handleSearchRequest(HttpServletRequest request) {
         Object[] searchParam = extractParams(request);
-        if (searchParam != null) {
-            try {
-                Collection<T> found = getDAO().findByParam(searchParam);
-                handleSuccess(found, request);
-            } catch (Exception ex) {
-                Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
-                handleError(request);
-                return false;
+        try {
+            Collection<T> found;
+            if (searchParam == null || searchParam[0] == null
+                    || String.valueOf(searchParam[0]).trim().isEmpty()) {
+                found = getDAO().findAll();
+            } else {
+                found = getDAO().findByParam(searchParam);
             }
+            handleSuccess(found, request);
+        } catch (Exception ex) {
+            Logger.getLogger(getClass().getName()).log(Level.SEVERE, null, ex);
+            handleError(request);
+            return false;
         }
         return true;
     }
