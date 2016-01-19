@@ -27,6 +27,9 @@ public class DirectorDAO extends AbstractDAO<Director> {
     public void remove(Number id) throws ModelException {
         Director d = find(id);
         if(d != null) {
+            for(Film f : filmsForDirector(id)) {
+                filmDAO.remove(f.getId());
+            }
             em.remove(d);
             log.send(d);
         }
@@ -40,6 +43,7 @@ public class DirectorDAO extends AbstractDAO<Director> {
     @Override
     public void create(Director entity) throws ModelException {
         em.persist(entity);
+        em.flush(); // force set id
         log.send(entity);
     }
 

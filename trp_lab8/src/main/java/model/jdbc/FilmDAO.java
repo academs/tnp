@@ -22,7 +22,7 @@ public class FilmDAO extends AbstractDAO<Film> {
 
     @Override
     public List<Film> filmsForDirector(Number directorId) {
-        return em.createQuery("select f from Film where f.idDirector = :id")
+        return em.createQuery("select f from Film f where f.idDirector.idDirector = :id")
                 .setParameter("id", directorId.intValue())
                 .getResultList();
     }
@@ -45,6 +45,7 @@ public class FilmDAO extends AbstractDAO<Film> {
     @Override
     public void create(Film entity) throws ModelException {
         em.persist(entity);
+        em.flush(); // force set id
         log.send(entity);
     }
 
@@ -80,7 +81,7 @@ public class FilmDAO extends AbstractDAO<Film> {
 
     @Override
     public void removeAll() throws ModelException {
-        for(Film f : findAll()) {
+        for (Film f : findAll()) {
             em.remove(f);
             log.send(f);
         }

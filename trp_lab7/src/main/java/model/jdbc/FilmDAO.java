@@ -17,7 +17,7 @@ public class FilmDAO extends AbstractDAO<Film> {
 
     @Override
     public List<Film> filmsForDirector(Number directorId) {
-        return em.createQuery("select f from Film where f.idDirector = :id")
+		return em.createQuery("select f from Film f where f.idDirector.idDirector = :id")
                 .setParameter("id", directorId.intValue())
                 .getResultList();
     }
